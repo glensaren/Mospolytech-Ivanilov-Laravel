@@ -1,10 +1,12 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\HomeController;
 
-Route::get('/', function () {
-    return view('home');
-})->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
+
+Route::get('/gallery', [HomeController::class, 'gallery'])->name('gallery');
+Route::get('/gallery/{id}', [HomeController::class, 'gallery'])->name('gallery.show');
 
 Route::get('/about', function () {
     return view('about');
