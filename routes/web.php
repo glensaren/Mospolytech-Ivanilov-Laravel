@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\AuthController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -54,3 +55,6 @@ Route::get('/contacts', function () {
     
     return view('contacts', ['contacts' => $contacts]);
 })->name('contacts');
+
+Route::get('/signin', [AuthController::class, 'create'])->name('auth.create');
+Route::post('/signin', [AuthController::class, 'registration'])->name('auth.registration');

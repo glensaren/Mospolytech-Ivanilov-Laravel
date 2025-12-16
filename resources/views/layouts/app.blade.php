@@ -26,6 +26,12 @@
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->is('contacts') ? 'active' : '' }}" href="/contacts">Контакты</a>
                             </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->is('signin') ? 'active' : '' }}" href="{{ route('auth.create') }}">
+                                    Регистрация
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 </div>
