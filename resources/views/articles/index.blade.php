@@ -4,7 +4,13 @@
 
 @section('content')
 <div class="container py-5">
-    <h1 class="mb-4">Новости из базы данных</h1>
+    <!-- Заголовок и кнопка создания -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Новости из базы данных</h1>
+        <a href="{{ route('articles.create') }}" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Создать статью
+        </a>
+    </div>
     
     <!-- Статистика -->
     <div class="row mb-5">
@@ -73,11 +79,28 @@
                     </div>
                 </div>
                 <div class="card-footer">
-                    <a href="{{ route('articles.show', $article->id) }}" class="btn btn-primary btn-sm">
-                        Читать далее
-                    </a>
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ route('articles.show', $article->id) }}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-eye"></i> Просмотр
+                        </a>
+                        <div>
+                            <a href="{{ route('articles.edit', $article->id) }}" class="btn btn-warning btn-sm">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form action="{{ route('articles.destroy', $article->id) }}" 
+                                  method="POST" 
+                                  class="d-inline"
+                                  onsubmit="return confirm('Удалить статью?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                     @if(!$article->is_published)
-                    <span class="badge bg-warning float-end">Черновик</span>
+                    <span class="badge bg-warning float-end mt-2">Черновик</span>
                     @endif
                 </div>
             </div>
@@ -89,8 +112,8 @@
     <div class="mt-4">
         {{ $articles->links() }}
     </div>
-    
-    <!-- Тацаблица для отображения данных -->
+
+    <!-- Таблица статей -->
     <div class="mt-5">
         <h3 class="mb-4">Таблица статей из базы данных</h3>
         <div class="table-responsive">
@@ -126,10 +149,26 @@
                             @endif
                         </td>
                         <td>
-                            <a href="{{ route('articles.show', $article->id) }}" 
-                               class="btn btn-sm btn-primary">
-                                Просмотр
-                            </a>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ route('articles.show', $article->id) }}" 
+                                   class="btn btn-info" title="Просмотр">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{{ route('articles.edit', $article->id) }}" 
+                                   class="btn btn-warning" title="Редактировать">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form action="{{ route('articles.destroy', $article->id) }}" 
+                                      method="POST" 
+                                      class="d-inline"
+                                      onsubmit="return confirm('Вы уверены, что хотите удалить эту статью?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger" title="Удалить">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     @endforeach
@@ -143,6 +182,10 @@
         <h4 class="alert-heading">Статьи не найдены!</h4>
         <p>В базе данных нет статей. Запустите сидер для заполнения фейковыми данными:</p>
         <code>php artisan db:seed</code>
+        <hr>
+        <a href="{{ route('articles.create') }}" class="btn btn-success mt-2">
+            <i class="bi bi-plus-circle"></i> Создать первую статью
+        </a>
     </div>
     @endif
 </div>

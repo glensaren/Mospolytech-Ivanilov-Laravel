@@ -78,25 +78,40 @@
                             <p><strong>ID:</strong> {{ $article->id }}</p>
                             <p><strong>Создана:</strong> {{ $article->created_at->format('d.m.Y H:i') }}</p>
                             <p><strong>Обновлена:</strong> {{ $article->updated_at->format('d.m.Y H:i') }}</p>
+                            <p><strong>URL изображения:</strong> {{ $article->preview_image }}</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="card">
                         <div class="card-header">
-                            <h6 class="mb-0">Действия</h6>
+                            <h6 class="mb-0">Управление статьей</h6>
                         </div>
                         <div class="card-body">
                             <div class="d-grid gap-2">
+                                <a href="{{ route('articles.edit', $article->id) }}" class="btn btn-warning">
+                                    <i class="bi bi-pencil"></i> Редактировать статью
+                                </a>
+                                
+                                <form action="{{ route('articles.destroy', $article->id) }}" 
+                                      method="POST" 
+                                      onsubmit="return confirm('Вы уверены, что хотите удалить эту статью?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger w-100">
+                                        <i class="bi bi-trash"></i> Удалить статью
+                                    </button>
+                                </form>
+                                
                                 <a href="{{ route('articles.index') }}" class="btn btn-secondary">
                                     <i class="bi bi-arrow-left"></i> Назад к списку
                                 </a>
-                                <a href="{{ route('home') }}" class="btn btn-primary">
+                                <a href="{{ route('articles.create') }}" class="btn btn-success">
+                                    <i class="bi bi-plus-circle"></i> Создать новую статью
+                                </a>
+                                <a href="{{ route('home') }}" class="btn btn-outline-primary">
                                     <i class="bi bi-house"></i> На главную (JSON)
                                 </a>
-                                <button class="btn btn-info" onclick="alert('Функция редактирования в разработке')">
-                                    <i class="bi bi-pencil"></i> Редактировать
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -105,7 +120,10 @@
         </div>
         
         <div class="card-footer text-muted">
-            <small>Данные загружены из базы данных MySQL</small>
+            <small>Данные загружены из базы данных SQLite | 
+                   <a href="{{ route('articles.edit', $article->id) }}" class="text-decoration-none">Редактировать</a> | 
+                   <a href="{{ route('articles.index') }}" class="text-decoration-none">Все статьи</a>
+            </small>
         </div>
     </div>
 </div>

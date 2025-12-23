@@ -4,20 +4,17 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Article;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class ArticleController extends Controller
 {
-    /**
-     * Display a listing of the articles from database
-     */
     public function index()
     {
-        // Получаем только опубликованные статьи, отсортированные по дате
         $articles = Article::where('is_published', true)
             ->orderBy('publication_date', 'desc')
             ->paginate(9);
         
-        // Получаем статистику
         $stats = [
             'total' => Article::count(),
             'published' => Article::where('is_published', true)->count(),
@@ -28,16 +25,122 @@ class ArticleController extends Controller
         return view('articles.index', compact('articles', 'stats'));
     }
 
-    /**
-     * Display the specified article
-     */
+    public function create()
+    {
+        $categories = ['Технологии', 'Наука', 'Образование', 'Культура', 'Спорт', 'Политика', 'Экономика', 'Здоровье'];
+        return view('articles.create', compact('categories'));
+    }
+
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => 'required|min:3|max:255',
+            'content' => 'required|min:10',
+            'short_description' => 'nullable|max:500',
+            'author' => 'required|min:2|max:100',
+            'publication_date' => 'required|date',
+            'category' => 'required|string|max:50',
+            'preview_image' => 'nullable|string|max:255',
+            'is_published' => 'boolean'
+        ], [
+            'title.required' => 'Заголовок обязателен для заполнения',
+            'title.min' => 'Заголовок должен содержать минимум 3 символа',
+            'title.max' => 'Заголовок должен содержать максимум 255 символов',
+            'content.required' => 'Содержание статьи обязательно',
+            'content.min' => 'Содержание должно содержать минимум 10 символов',
+            'author.required' => 'Имя автора обязательно',
+            'author.min' => 'Имя автора должно содержать минимум 2 символа',
+            'publication_date.required' => 'Дата публикации обязательна',
+            'publication_date.date' => 'Укажите корректную дату',
+            'category.required' => 'Выберите категорию'
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        $article = Article::create([
+            'title' => $request->title,
+            'content' => $request->content,
+            'short_description' => $request->short_description ?? Str::limit($request->content, 150),
+            'author' => $request->author,
+            'publication_date' => $request->publication_date,
+            'category' => $request->category,
+            'preview_image' => $request->preview_image ?? 'preview.jpg',
+            'is_published' => $request->has('is_published'),
+            'views_count' => 0
+        ]);
+
+        return redirect()->route('articles.show', $article->id)
+            ->with('success', 'Статья успешно создана!');
+    }
+
     public function show($id)
     {
         $article = Article::findOrFail($id);
-        
-        // Увеличиваем счетчик просмотров
         $article->increment('views_count');
         
         return view('articles.show', compact('article'));
+    }
+
+    public function edit($id)
+    {
+        $article = Article::findOrFail($id);
+        $categories = ['Технологии', 'Наука', 'Образование', 'Культура', 'Спорт', 'Политика', 'Экономика', 'Здоровье'];
+        
+        return view('articles.edit', compact('article', 'categories'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => 'required|min:3|max:255',
+            'content' => 'required|min:10',
+            'short_description' => 'nullable|max:500',
+            'author' => 'required|min:2|max:100',
+            'publication_date' => 'required|date',
+            'category' => 'required|string|max:50',
+            'preview_image' => 'nullable|string|max:255',
+            'is_published' => 'boolean'
+        ], [
+            'title.required' => 'Заголовок обязателен для заполнения',
+            'title.min' => 'Заголовок должен содержать минимум 3 символа',
+            'content.required' => 'Содержание статьи обязательно',
+            'content.min' => 'Содержание должно содержать минимум 10 символов',
+            'author.required' => 'Имя автора обязательно',
+            'publication_date.required' => 'Дата публикации обязательна'
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        $article = Article::findOrFail($id);
+        
+        $article->update([
+            'title' => $request->title,
+            'content' => $request->content,
+            'short_description' => $request->short_description ?? Str::limit($request->content, 150),
+            'author' => $request->author,
+            'publication_date' => $request->publication_date,
+            'category' => $request->category,
+            'preview_image' => $request->preview_image ?? $article->preview_image,
+            'is_published' => $request->has('is_published')
+        ]);
+
+        return redirect()->route('articles.show', $article->id)
+            ->with('success', 'Статья успешно обновлена!');
+    }
+    public function destroy($id)
+    {
+        $article = Article::findOrFail($id);
+        $article->delete();
+
+        return redirect()->route('articles.index')
+            ->with('success', 'Статья успешно удалена!');
     }
 }
