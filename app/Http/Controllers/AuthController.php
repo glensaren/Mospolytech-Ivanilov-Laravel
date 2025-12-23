@@ -4,21 +4,29 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Hash;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use Laravel\Sanctum\HasApiTokens;
 
 class AuthController extends Controller
 {
-
-    public function create()
+    /**
+     * Показывает форму регистрации
+     */
+    public function registerForm()
     {
-        return view('auth.signin');
+        return view('auth.register');
     }
 
-
-    public function registration(Request $request)
+    /**
+     * Обрабатывает регистрацию пользователя
+     */
+    public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|min:2|max:50|regex:/^[а-яА-ЯёЁa-zA-Z\s]+$/u',
-            'email' => 'required|email|max:100',
+            'email' => 'required|email|max:100|unique:users',
             'password' => 'required|min:6|max:50|confirmed',
             'password_confirmation' => 'required',
             'agree' => 'required|accepted'
@@ -31,6 +39,7 @@ class AuthController extends Controller
             'email.required' => 'Поле "Email" обязательно для заполнения',
             'email.email' => 'Введите корректный email адрес',
             'email.max' => 'Email должен содержать максимум 100 символов',
+            'email.unique' => 'Пользователь с таким email уже зарегистрирован',
             
             'password.required' => 'Поле "Пароль" обязательно для заполнения',
             'password.min' => 'Пароль должен содержать минимум 6 символов',
@@ -44,31 +53,98 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Ошибка валидации',
-                'errors' => $validator->errors(),
-                'data' => null
-            ], 422);
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
         }
 
-        $userData = [
-            'id' => rand(1000, 9999),
+        // Создаем пользователя
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => $request->password, // В реальном приложении нужно хешировать!
-            'registered_at' => date('d.m.Y H:i:s'),
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->header('User-Agent')
-        ];
+            'password' => Hash::make($request->password),
+        ]);
 
+        return redirect()->route('auth.loginForm')
+            ->with('success', 'Регистрация успешно завершена! Теперь вы можете войти в систему.');
+    }
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Регистрация успешно завершена!',
-            'data' => $userData,
-            'csrf_token' => $request->session()->token(), // Возвращаем новый CSRF токен
-            'redirect_url' => route('home')
-        ], 200);
+    /**
+     * Показывает форму авторизации
+     */
+    public function loginForm()
+    {
+        return view('auth.login');
+    }
+
+    /**
+     * Обрабатывает авторизацию пользователя
+     */
+    public function login(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'password' => 'required',
+            'remember' => 'nullable|boolean'
+        ], [
+            'email.required' => 'Поле "Email" обязательно для заполнения',
+            'email.email' => 'Введите корректный email адрес',
+            'password.required' => 'Поле "Пароль" обязательно для заполнения',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        // Попытка аутентификации
+        $credentials = $request->only('email', 'password');
+        $remember = $request->has('remember');
+
+        if (Auth::attempt($credentials, $remember)) {
+            // Создаем токен Sanctum
+            $user = Auth::user();
+            $token = $user->createToken('auth-token')->plainTextToken;
+            
+            // Сохраняем токен в сессии
+            $request->session()->put('auth_token', $token);
+            
+            // Редирект на главную с сообщением
+            return redirect()->route('home')
+                ->with('success', 'Вы успешно вошли в систему!')
+                ->withCookie(cookie('sanctum_token', $token, 60 * 24 * 30)); // Кука на 30 дней
+        }
+
+        return redirect()->back()
+            ->withErrors(['email' => 'Неверный email или пароль'])
+            ->withInput();
+    }
+
+    /**
+     * Выход пользователя из системы
+     */
+    public function logout(Request $request)
+    {
+        if (Auth::check()) {
+            // Удаляем все токены текущего пользователя
+            $request->user()->tokens()->delete();
+            
+            // Выход из системы
+            Auth::logout();
+            
+            // Очищаем сессию
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            
+            // Удаляем куку
+            $cookie = cookie()->forget('sanctum_token');
+            
+            return redirect()->route('home')
+                ->with('success', 'Вы успешно вышли из системы.')
+                ->withCookie($cookie);
+        }
+        
+        return redirect()->route('home');
     }
 }

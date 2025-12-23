@@ -57,8 +57,8 @@ Route::get('/contacts', function () {
     return view('contacts', ['contacts' => $contacts]);
 })->name('contacts');
 
-Route::get('/signin', [AuthController::class, 'create'])->name('auth.create');
-Route::post('/signin', [AuthController::class, 'registration'])->name('auth.registration');
+Route::get('/signin', [AuthController::class, 'registerForm'])->name('auth.registerForm');
+Route::post('/signin', [AuthController::class, 'register'])->name('auth.register');
 
 Route::get('/articles', [ArticleController::class, 'index'])->name('articles.index');
 Route::get('/articles/create', [ArticleController::class, 'create'])->name('articles.create'); 
@@ -67,3 +67,17 @@ Route::get('/articles/{id}', [ArticleController::class, 'show'])->name('articles
 Route::get('/articles/{id}/edit', [ArticleController::class, 'edit'])->name('articles.edit');
 Route::put('/articles/{id}', [ArticleController::class, 'update'])->name('articles.update');
 Route::delete('/articles/{id}', [ArticleController::class, 'destroy'])->name('articles.destroy');
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/articles/create', [ArticleController::class, 'create'])->name('articles.create');
+    Route::post('/articles', [ArticleController::class, 'store'])->name('articles.store');
+    Route::get('/articles/{id}/edit', [ArticleController::class, 'edit'])->name('articles.edit');
+    Route::put('/articles/{id}', [ArticleController::class, 'update'])->name('articles.update');
+    Route::delete('/articles/{id}', [ArticleController::class, 'destroy'])->name('articles.destroy');
+});
+
+Route::get('/register', [AuthController::class, 'registerForm'])->name('auth.registerForm');
+Route::post('/register', [AuthController::class, 'register'])->name('auth.register');
+Route::get('/login', [AuthController::class, 'loginForm'])->name('auth.loginForm');
+Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
+Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');

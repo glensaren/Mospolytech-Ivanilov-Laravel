@@ -29,16 +29,43 @@
                             </li>
 
                             <li class="nav-item">
-                                <a class="nav-link {{ request()->is('signin') ? 'active' : '' }}" href="{{ route('auth.create') }}">
-                                    Регистрация
+                                <a class="nav-link {{ request()->is('articles*') ? 'active' : '' }}" href="{{ route('articles.index') }}">
+                                    Новости (БД)
                                 </a>
                             </li>
 
+                            <!-- АУТЕНТИФИКАЦИЯ: ЭТОТ БЛОК ЗАМЕНИТЬ -->
+                            @auth
+                            <!-- Для авторизованных пользователей -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                    {{ Auth::user()->name }}
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{{ route('articles.create') }}">Создать статью</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form method="POST" action="{{ route('auth.logout') }}" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="dropdown-item">Выйти</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                            @else
+                            <!-- Для неавторизованных пользователей -->
                             <li class="nav-item">
-    <a class="nav-link {{ request()->is('articles*') ? 'active' : '' }}" href="{{ route('articles.index') }}">
-        Новости (БД)
-    </a>
-</li>
+                                <a class="nav-link {{ request()->is('login') ? 'active' : '' }}" href="{{ route('auth.loginForm') }}">
+                                    Вход
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->is('register', 'signin') ? 'active' : '' }}" href="{{ route('auth.registerForm') }}">
+                                    Регистрация
+                                </a>
+                            </li>
+                            @endauth
+                            <!-- КОНЕЦ БЛОКА АУТЕНТИФИКАЦИИ -->
                         </ul>
                     </div>
                 </div>
@@ -48,6 +75,15 @@
 
     <main class="py-4">
         <div class="container">
+            @if(session('success'))
+            <div class="container mt-3">
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            </div>
+            @endif
+            
             @yield('content')
         </div>
     </main>

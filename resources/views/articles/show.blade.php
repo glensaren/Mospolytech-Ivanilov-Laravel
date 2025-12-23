@@ -23,7 +23,6 @@
         </div>
         
         <div class="card-body">
-            <!-- Мета-информация -->
             <div class="row mb-4">
                 <div class="col-md-6">
                     <p><strong>Автор:</strong> {{ $article->author }}</p>
@@ -40,8 +39,7 @@
                     </p>
                 </div>
             </div>
-            
-            <!-- Изображение -->
+     
             @if($article->preview_image)
             <div class="text-center mb-4">
                 <img src="{{ asset($article->preview_image) }}" 
@@ -51,15 +49,13 @@
             </div>
             @endif
             
-            <!-- Краткое описание -->
             @if($article->short_description)
             <div class="alert alert-info">
                 <h5>Краткое описание:</h5>
                 <p class="mb-0">{{ $article->short_description }}</p>
             </div>
             @endif
-            
-            <!-- Полное содержание -->
+
             <div class="article-content mt-4">
                 <h4>Содержание:</h4>
                 <div class="content-box p-3 border rounded bg-light">
@@ -67,7 +63,6 @@
                 </div>
             </div>
             
-            <!-- Дополнительная информация -->
             <div class="row mt-4">
                 <div class="col-md-6">
                     <div class="card">
