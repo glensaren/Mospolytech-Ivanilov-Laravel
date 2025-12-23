@@ -32,6 +32,12 @@
                                     Регистрация
                                 </a>
                             </li>
+
+                            <li class="nav-item">
+    <a class="nav-link {{ request()->is('articles*') ? 'active' : '' }}" href="{{ route('articles.index') }}">
+        Новости (БД)
+    </a>
+</li>
                         </ul>
                     </div>
                 </div>
