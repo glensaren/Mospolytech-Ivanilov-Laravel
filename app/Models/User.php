@@ -26,4 +26,12 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    /**
+     * Получить комментарии пользователя
+     */
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
 }

@@ -63,6 +63,119 @@
                 </div>
             </div>
             
+                        <div class="comments-section mt-5 pt-4 border-top">
+                <h3 class="mb-4">
+                    <i class="bi bi-chat-left-text"></i> Комментарии 
+                    <span class="badge bg-primary">{{ $article->comments->count() }}</span>
+                </h3>
+                
+                @if(session('success'))
+                    <div class="alert alert-success alert-dismissible fade show">
+                        {{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
+                
+                <!-- Форма добавления комментария -->
+                @auth
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">Добавить комментарий</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ route('comments.store', $article->id) }}" method="POST">
+                            @csrf
+                            <div class="form-group mb-3">
+                                <label for="content" class="form-label">Ваш комментарий:</label>
+                                <textarea class="form-control @error('content') is-invalid @enderror" 
+                                         name="content" 
+                                         id="content"
+                                         rows="4" 
+                                         placeholder="Напишите ваш комментарий здесь..."
+                                         required>{{ old('content') }}</textarea>
+                                @error('content')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-send"></i> Отправить комментарий
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                @else
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> 
+                    <a href="{{ route('auth.loginForm') }}" class="alert-link">Войдите</a> или 
+                    <a href="{{ route('auth.registerForm') }}" class="alert-link">зарегистрируйтесь</a>, 
+                    чтобы оставлять комментарии
+                </div>
+                @endauth
+                
+                <!-- Список комментариев -->
+                @if($article->comments->count() > 0)
+                    @foreach($article->comments as $comment)
+                    <div class="card mb-3 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex">
+                                <!-- Аватар пользователя -->
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                         style="width: 40px; height: 40px;">
+                                        <i class="bi bi-person"></i>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <h6 class="mb-0 fw-bold">
+                                                {{ $comment->user->name ?? 'Пользователь' }}
+                                            </h6>
+                                            <small class="text-muted">
+                                                <i class="bi bi-clock"></i> 
+                                                {{ $comment->created_at->format('d.m.Y H:i') }}
+                                            </small>
+                                        </div>
+                                        
+                                        @if(Auth::check() && Auth::id() == $comment->user_id)
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ route('comments.edit', ['article' => $article->id, 'comment' => $comment->id]) }}" 
+                                               class="btn btn-outline-primary">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            
+                                            <form action="{{ route('comments.destroy', ['article' => $article->id, 'comment' => $comment->id]) }}" 
+                                                  method="POST" 
+                                                  class="d-inline"
+                                                  onsubmit="return confirm('Удалить этот комментарий?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-outline-danger">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                        @endif
+                                    </div>
+                                    
+                                    <p class="mb-0">{{ $comment->content }}</p>
+                                    
+                                    <!-- Кнопка "Ответить" (опционально) -->
+                                    <!-- <button class="btn btn-link btn-sm p-0 mt-2">Ответить</button> -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                @else
+                <div class="text-center py-4">
+                    <i class="bi bi-chat-left" style="font-size: 3rem; color: #dee2e6;"></i>
+                    <p class="text-muted mt-2">Комментариев пока нет. Будьте первым!</p>
+                </div>
+                @endif
+            </div>
+
             <div class="row mt-4">
                 <div class="col-md-6">
                     <div class="card">
