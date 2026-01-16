@@ -78,21 +78,6 @@
                         @enderror
                     </div>
                     
-                    <!-- Автор -->
-                    <div class="col-md-6 mb-3">
-                        <label for="author" class="form-label">Автор *</label>
-                        <input type="text" 
-                               class="form-control @error('author') is-invalid @enderror" 
-                               id="author" 
-                               name="author" 
-                               value="{{ old('author') }}"
-                               placeholder="Имя автора"
-                               required>
-                        @error('author')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    
                     <!-- Дата публикации -->
                     <div class="col-md-6 mb-3">
                         <label for="publication_date" class="form-label">Дата публикации *</label>
