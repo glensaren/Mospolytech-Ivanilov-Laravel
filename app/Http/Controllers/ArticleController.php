@@ -27,12 +27,18 @@ class ArticleController extends Controller
 
     public function create()
     {
+        // Проверяем права пользователя на создание статьи
+        $this->authorize('create', Article::class);
+        
         $categories = ['Технологии', 'Наука', 'Образование', 'Культура', 'Спорт', 'Политика', 'Экономика', 'Здоровье'];
         return view('articles.create', compact('categories'));
     }
 
     public function store(Request $request)
     {
+        // Проверяем права пользователя на создание статьи
+        $this->authorize('create', Article::class);
+        
         $validator = Validator::make($request->all(), [
             'title' => 'required|min:3|max:255',
             'content' => 'required|min:10',
@@ -88,6 +94,10 @@ class ArticleController extends Controller
     public function edit($id)
     {
         $article = Article::findOrFail($id);
+        
+        // Проверяем права пользователя на редактирование статьи
+        $this->authorize('update', $article);
+        
         $categories = ['Технологии', 'Наука', 'Образование', 'Культура', 'Спорт', 'Политика', 'Экономика', 'Здоровье'];
         
         return view('articles.edit', compact('article', 'categories'));
@@ -95,6 +105,11 @@ class ArticleController extends Controller
 
     public function update(Request $request, $id)
     {
+        $article = Article::findOrFail($id);
+        
+        // Проверяем права пользователя на обновление статьи
+        $this->authorize('update', $article);
+        
         $validator = Validator::make($request->all(), [
             'title' => 'required|min:3|max:255',
             'content' => 'required|min:10',
@@ -119,8 +134,6 @@ class ArticleController extends Controller
                 ->withInput();
         }
 
-        $article = Article::findOrFail($id);
-        
         $article->update([
             'title' => $request->title,
             'content' => $request->content,
@@ -135,9 +148,14 @@ class ArticleController extends Controller
         return redirect()->route('articles.show', $article->id)
             ->with('success', 'Статья успешно обновлена!');
     }
+    
     public function destroy($id)
     {
         $article = Article::findOrFail($id);
+        
+        // Проверяем права пользователя на удаление статьи
+        $this->authorize('delete', $article);
+
         $article->delete();
 
         return redirect()->route('articles.index')

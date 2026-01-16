@@ -6,6 +6,7 @@ use App\Models\Comment;
 use App\Models\Article;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Auth\Access\AuthorizationException;
 
 class CommentsController extends Controller
 {
@@ -59,7 +60,11 @@ class CommentsController extends Controller
         $comment = Comment::where('article_id', $articleId)->findOrFail($commentId);
 
         // Проверяем права - только автор комментария может его редактировать
-        $this->authorize('update', $comment);
+        try {
+            $this->authorize('update', $comment);
+        } catch (AuthorizationException $e) {
+            abort(403, 'У вас нет прав для редактирования этого комментария.');
+        }
 
         $comment->update(['content' => $request->content]);
 
@@ -74,7 +79,11 @@ class CommentsController extends Controller
         $comment = Comment::where('article_id', $articleId)->findOrFail($commentId);
 
         // Проверяем права - только автор комментария или модератор может его удалить
-        $this->authorize('delete', $comment);
+        try {
+            $this->authorize('delete', $comment);
+        } catch (AuthorizationException $e) {
+            abort(403, 'У вас нет прав для удаления этого комментария.');
+        }
 
         $comment->delete();
 
@@ -89,7 +98,11 @@ class CommentsController extends Controller
         $comment = Comment::where('article_id', $articleId)->findOrFail($commentId);
 
         // Проверяем права через шлюз - только автор комментария или модератор
-        $this->authorize('functional-interface', $comment);
+        try {
+            $this->authorize('functional-interface', $comment);
+        } catch (AuthorizationException $e) {
+            abort(403, 'У вас нет прав для доступа к функциональному интерфейсу.');
+        }
 
         return response()->json(['message' => 'Доступ к функциональному интерфейсу разрешен']);
     }
