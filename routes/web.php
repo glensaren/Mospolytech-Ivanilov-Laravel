@@ -81,3 +81,12 @@ Route::post('/register', [AuthController::class, 'register'])->name('auth.regist
 Route::get('/login', [AuthController::class, 'loginForm'])->name('auth.loginForm');
 Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
 Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');
+
+// Маршруты для комментариев
+Route::middleware(['auth'])->group(function () {
+    Route::get('/articles/{articleId}/comments', [CommentsController::class, 'index'])->name('comments.index');
+    Route::post('/articles/{articleId}/comments', [CommentsController::class, 'store'])->name('comments.store');
+    Route::put('/articles/{articleId}/comments/{commentId}', [CommentsController::class, 'update'])->name('comments.update');
+    Route::delete('/articles/{articleId}/comments/{commentId}', [CommentsController::class, 'destroy'])->name('comments.destroy');
+    Route::get('/articles/{articleId}/comments/{commentId}/functional', [CommentsController::class, 'checkFunctionalInterface'])->name('comments.functional');
+});

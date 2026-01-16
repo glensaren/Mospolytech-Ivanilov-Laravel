@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
+use App\Models\Comment;
 
 class Article extends Model
 {
@@ -50,5 +52,13 @@ class Article extends Model
     public function getExcerptAttribute()
     {
         return Str::limit(strip_tags($this->content), 200);
+    }
+
+    /**
+     * Связь: статья имеет много комментариев
+     */
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
     }
 }
