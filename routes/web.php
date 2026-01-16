@@ -62,19 +62,30 @@ Route::get('/signin', [AuthController::class, 'registerForm'])->name('auth.regis
 Route::post('/signin', [AuthController::class, 'register'])->name('auth.register');
 
 Route::get('/articles', [ArticleController::class, 'index'])->name('articles.index');
-Route::get('/articles/create', [ArticleController::class, 'create'])->name('articles.create'); 
-Route::post('/articles', [ArticleController::class, 'store'])->name('articles.store');
 Route::get('/articles/{id}', [ArticleController::class, 'show'])->name('articles.show'); 
-Route::get('/articles/{id}/edit', [ArticleController::class, 'edit'])->name('articles.edit');
-Route::put('/articles/{id}', [ArticleController::class, 'update'])->name('articles.update');
-Route::delete('/articles/{id}', [ArticleController::class, 'destroy'])->name('articles.destroy');
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/articles/create', [ArticleController::class, 'create'])->name('articles.create');
-    Route::post('/articles', [ArticleController::class, 'store'])->name('articles.store');
-    Route::get('/articles/{id}/edit', [ArticleController::class, 'edit'])->name('articles.edit');
-    Route::put('/articles/{id}', [ArticleController::class, 'update'])->name('articles.update');
-    Route::delete('/articles/{id}', [ArticleController::class, 'destroy'])->name('articles.destroy');
+    // Маршруты для управления статьями - только для модераторов
+    Route::middleware(['can:create,App\Models\Article'])->group(function () {
+        Route::get('/articles/create', [ArticleController::class, 'create'])->name('articles.create');
+        Route::post('/articles', [ArticleController::class, 'store'])->name('articles.store');
+    });
+    
+    Route::middleware(['can:update,article'])->group(function () {
+        Route::get('/articles/{id}/edit', [ArticleController::class, 'edit'])->name('articles.edit');
+        Route::put('/articles/{id}', [ArticleController::class, 'update'])->name('articles.update');
+    });
+    
+    Route::middleware(['can:delete,article'])->group(function () {
+        Route::delete('/articles/{id}', [ArticleController::class, 'destroy'])->name('articles.destroy');
+    });
+    
+    // Маршруты для комментариев - доступны всем аутентифицированным пользователям
+    Route::get('/articles/{articleId}/comments', [CommentsController::class, 'index'])->name('comments.index');
+    Route::post('/articles/{articleId}/comments', [CommentsController::class, 'store'])->name('comments.store');
+    Route::put('/articles/{articleId}/comments/{commentId}', [CommentsController::class, 'update'])->name('comments.update');
+    Route::delete('/articles/{articleId}/comments/{commentId}', [CommentsController::class, 'destroy'])->name('comments.destroy');
+    Route::get('/articles/{articleId}/comments/{commentId}/functional', [CommentsController::class, 'checkFunctionalInterface'])->name('comments.functional');
 });
 
 Route::middleware(['auth'])->group(function () {
@@ -89,12 +100,3 @@ Route::post('/register', [AuthController::class, 'register'])->name('auth.regist
 Route::get('/login', [AuthController::class, 'loginForm'])->name('auth.loginForm');
 Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
 Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');
-
-// Маршруты для комментариев
-Route::middleware(['auth'])->group(function () {
-    Route::get('/articles/{articleId}/comments', [CommentsController::class, 'index'])->name('comments.index');
-    Route::post('/articles/{articleId}/comments', [CommentsController::class, 'store'])->name('comments.store');
-    Route::put('/articles/{articleId}/comments/{commentId}', [CommentsController::class, 'update'])->name('comments.update');
-    Route::delete('/articles/{articleId}/comments/{commentId}', [CommentsController::class, 'destroy'])->name('comments.destroy');
-    Route::get('/articles/{articleId}/comments/{commentId}/functional', [CommentsController::class, 'checkFunctionalInterface'])->name('comments.functional');
-});

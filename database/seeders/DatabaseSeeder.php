@@ -12,9 +12,10 @@ class DatabaseSeeder extends Seeder
         \App\Models\Article::truncate();
         
         $this->call([
+            RoleSeeder::class,
             ArticleSeeder::class,
             UserSeeder::class,
-            CommentSeeder::class,
+            ModeratorSeeder::class,
         ]);
     }
 }
