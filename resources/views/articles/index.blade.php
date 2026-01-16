@@ -12,42 +12,6 @@
         </a>
     </div>
     
-    <!-- Статистика -->
-    <div class="row mb-5">
-        <div class="col-md-3">
-            <div class="card text-white bg-primary">
-                <div class="card-body text-center">
-                    <h4>{{ $stats['total'] }}</h4>
-                    <p class="card-text">Всего статей</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-success">
-                <div class="card-body text-center">
-                    <h4>{{ $stats['published'] }}</h4>
-                    <p class="card-text">Опубликовано</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-info">
-                <div class="card-body text-center">
-                    <h4>{{ count($stats['categories']) }}</h4>
-                    <p class="card-text">Категорий</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-warning">
-                <div class="card-body text-center">
-                    <h4>{{ number_format($stats['total_views']) }}</h4>
-                    <p class="card-text">Всего просмотров</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
     <!-- Список статей -->
     @if($articles->count() > 0)
     <div class="row">
@@ -106,11 +70,6 @@
             </div>
         </div>
         @endforeach
-    </div>
-    
-    <!-- Пагинация -->
-    <div class="mt-4">
-        {{ $articles->links() }}
     </div>
 
     <!-- Таблица статей -->
@@ -177,16 +136,65 @@
         </div>
     </div>
     
+    <!-- Пагинация -->
+@if($articles->hasPages())
+<div class="mt-4">
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {{-- Предыдущая страница --}}
+            @if($articles->onFirstPage())
+                <li class="page-item disabled">
+                    <span class="page-link">&laquo; Назад</span>
+                </li>
+            @else
+                <li class="page-item">
+                    <a class="page-link" href="{{ $articles->previousPageUrl() }}" rel="prev">&laquo; Назад</a>
+                </li>
+            @endif
+
+            {{-- Номера страниц --}}
+            @foreach(range(1, $articles->lastPage()) as $page)
+                @if($page == $articles->currentPage())
+                    <li class="page-item active">
+                        <span class="page-link">{{ $page }}</span>
+                    </li>
+                @else
+                    <li class="page-item">
+                        <a class="page-link" href="{{ $articles->url($page) }}">{{ $page }}</a>
+                    </li>
+                @endif
+            @endforeach
+
+            {{-- Следующая страница --}}
+            @if($articles->hasMorePages())
+                <li class="page-item">
+                    <a class="page-link" href="{{ $articles->nextPageUrl() }}" rel="next">Вперед &raquo;</a>
+                </li>
+            @else
+                <li class="page-item disabled">
+                    <span class="page-link">Вперед &raquo;</span>
+                </li>
+            @endif
+        </ul>
+    </nav>
+    
+    <div class="text-center text-muted mt-2">
+        Страница {{ $articles->currentPage() }} из {{ $articles->lastPage() }}
+        (Показано {{ $articles->count() }} из {{ $articles->total() }} статей)
+    </div>
+</div>
+@endif
+
     @else
     <div class="alert alert-warning">
         <h4 class="alert-heading">Статьи не найдены!</h4>
-        <p>В базе данных нет статей. Запустите сидер для заполнения фейковыми данными:</p>
-        <code>php artisan db:seed</code>
+        <p>В базе данных нет статей.</p>
         <hr>
         <a href="{{ route('articles.create') }}" class="btn btn-success mt-2">
             <i class="bi bi-plus-circle"></i> Создать первую статью
         </a>
     </div>
+
     @endif
 </div>
 @endsection

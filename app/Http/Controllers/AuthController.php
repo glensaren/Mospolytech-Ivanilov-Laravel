@@ -2,84 +2,83 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
+    /**
+     * Показать форму регистрации
+     */
     public function registerForm()
     {
         return view('auth.register');
     }
 
+    /**
+     * Обработка регистрации
+     */
     public function register(Request $request)
     {
-        // ... валидация как раньше ...
-        
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
 
-        // Sanctum: создаем токен при регистрации (опционально)
-        // $token = $user->createToken('auth-token')->plainTextToken;
-        // $request->session()->put('sanctum_token', $token);
+        Auth::login($user);
 
-        return redirect()->route('auth.loginForm')
-            ->with('success', 'Регистрация успешно завершена!');
+        return redirect()->route('home')->with('success', 'Регистрация успешна!');
     }
 
+    /**
+     * Показать форму входа
+     */
     public function loginForm()
     {
         return view('auth.login');
     }
 
+    /**
+     * Обработка входа
+     */
     public function login(Request $request)
     {
-        // ... валидация ...
-        
-        if (Auth::attempt($credentials, $remember)) {
-            // Sanctum: создаем токен
-            $user = Auth::user();
-            $token = $user->createToken('auth-token')->plainTextToken;
-            
-            // Сохраняем токен в сессии
-            $request->session()->put('sanctum_token', $token);
-            
+        // ВАЖНО: Получаем данные из запроса
+        $credentials = $request->validate([
+            'email' => 'required|string|email',
+            'password' => 'required|string',
+        ]);
+
+        // Попытка аутентификации
+        if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            
-            return redirect()->route('home')
-                ->with('success', 'Вы успешно вошли в систему!')
-                ->withCookie(cookie('sanctum_token', $token, 60 * 24 * 30)); // Кука на 30 дней
+            return redirect()->intended(route('home'))->with('success', 'Вход выполнен успешно!');
         }
 
-        return back()->withErrors(['email' => 'Неверный email или пароль']);
+        // Если аутентификация не удалась
+        return back()->withErrors([
+            'email' => 'Неверный email или пароль.',
+        ])->onlyInput('email');
     }
 
+    /**
+     * Выход из системы
+     */
     public function logout(Request $request)
     {
-        // Sanctum: удаляем все токены пользователя
-        if (Auth::check()) {
-            $request->user()->tokens()->delete();
-        }
-        
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         
-        // Удаляем куку с токеном
-        $cookie = cookie()->forget('sanctum_token');
-        
-        return redirect()->route('home')
-            ->with('success', 'Вы успешно вышли из системы.')
-            ->withCookie($cookie);
+        return redirect()->route('home')->with('success', 'Вы вышли из системы.');
     }
-    
-    // Для совместимости
-    public function create() { return $this->registerForm(); }
-    public function registration(Request $request) { return $this->register($request); }
 }

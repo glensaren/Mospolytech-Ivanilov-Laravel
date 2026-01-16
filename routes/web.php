@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CommentController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -74,6 +75,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/articles/{id}/edit', [ArticleController::class, 'edit'])->name('articles.edit');
     Route::put('/articles/{id}', [ArticleController::class, 'update'])->name('articles.update');
     Route::delete('/articles/{id}', [ArticleController::class, 'destroy'])->name('articles.destroy');
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::post('/articles/{article}/comments', [CommentController::class, 'store'])->name('comments.store');
+    Route::get('/articles/{article}/comments/{comment}/edit', [CommentController::class, 'edit'])->name('comments.edit');
+    Route::put('/articles/{article}/comments/{comment}', [CommentController::class, 'update'])->name('comments.update');
+    Route::delete('/articles/{article}/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
 });
 
 Route::get('/register', [AuthController::class, 'registerForm'])->name('auth.registerForm');

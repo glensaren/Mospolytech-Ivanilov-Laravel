@@ -94,7 +94,7 @@
                                name="author" 
                                value="{{ old('author', $article->author) }}"
                                placeholder="Имя автора"
-                               required>
+                               readonly>
                         @error('author')
                         <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
